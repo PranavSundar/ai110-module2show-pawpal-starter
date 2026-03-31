@@ -124,10 +124,38 @@ st.subheader("Build Schedule")
 if st.button("Generate schedule"):
     scheduler = Scheduler(owner)
     schedule = scheduler.generate_daily_plan()
+
     st.write("### Today\'s schedule")
-    st.write(schedule.summary())
-    if scheduler.validate():
-        st.success("Schedule valid")
+
+    if not schedule.tasks:
+        st.info("No tasks fit in available time or no tasks exist.")
     else:
-        st.error("Schedule exceeds available time")
+        # Display the schedule in a table for readability
+        rows = []
+        for task in scheduler.sort_by_time(schedule.tasks):
+            rows.append({
+                "Task": task.title,
+                "Pet": next((p.name for p in owner.pets if task in p.tasks), "unknown"),
+                "Start": task.scheduled_at.strftime("%Y-%m-%d %H:%M") if task.scheduled_at else "unscheduled",
+                "Duration": task.duration_minutes,
+                "Priority": task.priority,
+                "Completed": task.completed,
+            })
+        st.table(rows)
+
+        warning_messages = scheduler.detect_conflicts(schedule.tasks)
+        if warning_messages:
+            st.warning("Task conflicts detected. Please review the overlapping tasks:")
+            for msg in warning_messages:
+                st.warning(msg)
+        else:
+            st.success("No conflicts detected in today's schedule.")
+
+        if scheduler.validate():
+            st.success("Schedule is valid and within available time")
+        else:
+            st.error("Schedule exceeds available time")
+
+        st.markdown("#### Full resolution schedule summary")
+        st.code(schedule.summary())
 

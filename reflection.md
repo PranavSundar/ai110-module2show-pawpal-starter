@@ -15,57 +15,46 @@ I rewrote the skeleton to concrete backend logic, added new classes/fields from 
 ## 2. Scheduling Logic and Tradeoffs
 
 **a. Constraints and priorities**
+Constraints: time budget, priority, completion status, and recurrence are used. ConstraintEngine.apply_constraints() filters out completed tasks and respects max task/day and availability.
+Chosen constraints: time and priority are most important because pet care must fit into owner capacity and high-risk tasks are handled first.
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-  - The current conflict detector only checks for exact or simple overlapping start/end alignments, but it does not manage partial overlaps with different durations in a sophisticated way (for example, one task from 8:00-8:30 and another 8:15-8:45). This keeps logic lightweight and predictable but means some schedule subtleties might not be optimized.
-- Why is that tradeoff reasonable for this scenario?
-  - For a basic pet care planner, minimizing crash-risk and keeping explanations simple outweighs handling highly complex interval packing.
+The current conflict detector only checks for exact or simple overlapping start/end alignments, but it does not manage partial overlaps with different durations in a sophisticated way (for example, one task from 8:00-8:30 and another 8:15-8:45). This keeps logic lightweight and predictable but means some schedule subtleties might not be optimized.
+For a basic pet care planner, minimizing crash-risk and keeping explanations simple outweighs handling highly complex interval packing.
 
 ---
 
 ## 3. AI Collaboration
 
 **a. How you used AI**
-
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+Used AI for design advice, test plan drafting, and refactoring from a skeleton to working methods. Prompts asking “what edge cases to test” and “how to map implementation to UML” were most helpful.
 
 **b. Judgment and verification**
-
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+Judgment: I rejected any path that contradicted project requirements (e.g., missing Task.mark_complete recurrence). I verified by reading pawpal_system.py and running pytest. As a result, AI suggestions were treated as drafts, then finalized with code inspection and tests.
 
 ---
 
 ## 4. Testing and Verification
 
 **a. What you tested**
+Tested: task completion and recurrence, sort-by-time correctness, and conflict detection. Important because these are core scheduler features in the prompt.
 
-- What behaviors did you test?
-- Why were these tests important?
 
 **b. Confidence**
-
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+Confidence: high, but I’d next check DST/date boundaries, simultaneous promotion tie-breaks, and invalid input handling.
+Edge cases next: leap day recurrence, missing/past deadlines, and out-of-budget scenarios.
 
 ---
 
 ## 5. Reflection
 
 **a. What went well**
-
-- What part of this project are you most satisfied with?
+Properly implementing full flow from model classes to UI and getting passing tests quickly.
 
 **b. What you would improve**
-
-- If you had another iteration, what would you improve or redesign?
+Adding richer conflict resolution (auto-reschedule/weighter overlap handling) and better task editing UI.
 
 **c. Key takeaway**
-
-- What is one important thing you learned about designing systems or working with AI on this project?
+Start with clean class behavior + tests, then wire UI. Also, use AI for scaffolding, but always verify with code and tests.

@@ -67,5 +67,8 @@ python -m pytest
   - conflict detection for overlapping tasks
   - base task/pet behavior (add task, mark complete)
 
-- Confidence Level: ⭐⭐⭐⭐⭐ (5/5) based on all requested test cases passing in the current suite.
+- Confidence Level: 4.5 Stars based on all requested test cases passing in the current suite.
 
+<a href="course_imagesai110pawpal_ui.png" target="_blank">
+  <img src="course_imagesai110pawpal_ui.png" alt="PawPal+ UI" width="900"/>
+</a>
