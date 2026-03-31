@@ -53,3 +53,19 @@ This project now includes:
 - filtering by pet and completion status
 - persisted session state in the Streamlit UI (via `st.session_state.owner`)
 
+## Testing PawPal+
+
+- Run test suite:
+
+```bash
+python -m pytest
+```
+
+- Tests cover:
+  - task completion and recurrence behavior (daily tasks generate next-day tasks)
+  - schedule sorting order by `scheduled_at` time
+  - conflict detection for overlapping tasks
+  - base task/pet behavior (add task, mark complete)
+
+- Confidence Level: ⭐⭐⭐⭐⭐ (5/5) based on all requested test cases passing in the current suite.
+
