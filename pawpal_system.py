@@ -42,8 +42,43 @@ class Task:
             base -= 1000
         return base
 
-    def mark_complete(self) -> None:
+    def mark_complete(self) -> Optional[Task]:
+        """Mark this task as completed.
+
+        If the task is recurring ('daily' or 'weekly'), create and return a new
+        Task instance for the next occurrence. Otherwise return None.
+        """
         self.completed = True
+
+        # If task recurs daily or weekly, create the next occurrence
+        if self.frequency in ('daily', 'weekly'):
+            delta = timedelta(days=1 if self.frequency == 'daily' else 7)
+
+            # Keep time of existing scheduled time if available, otherwise midnight
+            if self.scheduled_at:
+                next_start = self.scheduled_at + delta
+            else:
+                next_start = datetime.combine(date.today() + delta, datetime.min.time())
+
+            next_deadline = None
+            if self.deadline:
+                next_deadline = self.deadline + delta
+
+            next_task = Task.create(
+                title=self.title,
+                description=self.description,
+                duration_minutes=self.duration_minutes,
+                frequency=self.frequency,
+                priority=self.priority,
+                category=self.category,
+                deadline=next_deadline,
+                is_mandatory=self.is_mandatory,
+            )
+            next_task.scheduled_at = next_start
+            next_task.scheduled_end = next_start + timedelta(minutes=self.duration_minutes)
+            return next_task
+
+        return None
 
     def conflicts(self, other: "Task") -> bool:
         if self.scheduled_at and self.scheduled_end and other.scheduled_at and other.scheduled_end:
@@ -180,6 +215,27 @@ class Scheduler:
     def get_pending_tasks(self) -> List[Task]:
         return self.owner.get_uncompleted_tasks()
 
+    def sort_by_time(self, tasks: Optional[List[Task]] = None) -> List[Task]:
+        """Return tasks sorted by scheduled time (HH:MM)."""
+        tasks = tasks or self.get_tasks()
+
+        def key(task: Task):
+            if task.scheduled_at:
+                return task.scheduled_at.strftime('%H:%M')
+            return '23:59'
+
+        return sorted(tasks, key=key)
+
+    def filter_tasks(self, completed: Optional[bool] = None, pet_name: Optional[str] = None) -> List[Task]:
+        """Return tasks filtered by completion status and/or owning pet."""
+
+        tasks = self.get_tasks()
+        if completed is not None:
+            tasks = [t for t in tasks if t.completed == completed]
+        if pet_name is not None:
+            tasks = [t for t in tasks if any(p.name == pet_name and t in p.tasks for p in self.owner.pets)]
+        return tasks
+
     def generate_daily_plan(self) -> DailyPlan:
         tasks = self.get_pending_tasks()
         tasks = ConstraintEngine.apply_constraints(self.owner, tasks)
@@ -202,7 +258,30 @@ class Scheduler:
     def explain_plan(self) -> str:
         if not self.schedule:
             return 'No schedule generated.'
+
+        conflicts = self.detect_conflicts()
+        if conflicts:
+            return self.schedule.summary() + "\n\nWARNINGS:\n" + "\n".join(conflicts)
+
         return self.schedule.summary()
+
+    def detect_conflicts(self, tasks: Optional[List[Task]] = None) -> List[str]:
+        """Return a list of warning strings for overlapping scheduled tasks."""
+        tasks = tasks or (self.schedule.tasks if self.schedule else [])
+        warnings = []
+        for i, t1 in enumerate(tasks):
+            if not t1.scheduled_at or not t1.scheduled_end:
+                continue
+            for t2 in tasks[i + 1 :]:
+                if not t2.scheduled_at or not t2.scheduled_end:
+                    continue
+                # time overlap detection
+                overlap = not (t1.scheduled_end <= t2.scheduled_at or t2.scheduled_end <= t1.scheduled_at)
+                if overlap:
+                    warnings.append(
+                        f"Task '{t1.title}' conflicts with '{t2.title}' at {t1.scheduled_at.strftime('%H:%M')}"
+                    )
+        return warnings
 
     def llm_explain(self, plan: DailyPlan) -> str:
         return f"Plan has {len(plan.tasks)} tasks and {plan.total_minutes} minutes."
@@ -211,6 +290,18 @@ class Scheduler:
         if self.schedule is None:
             return False
         return self.schedule.is_within_budget(self.time_budget)
+
+    def complete_task(self, task: Task) -> Optional[Task]:
+        next_task = task.mark_complete()
+        if next_task is None:
+            return None
+
+        for pet in self.owner.pets:
+            if task in pet.tasks:
+                pet.add_task(next_task)
+                break
+
+        return next_task
 
 
 class PawPalApp:

@@ -22,7 +22,9 @@ I rewrote the skeleton to concrete backend logic, added new classes/fields from 
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+  - The current conflict detector only checks for exact or simple overlapping start/end alignments, but it does not manage partial overlaps with different durations in a sophisticated way (for example, one task from 8:00-8:30 and another 8:15-8:45). This keeps logic lightweight and predictable but means some schedule subtleties might not be optimized.
 - Why is that tradeoff reasonable for this scenario?
+  - For a basic pet care planner, minimizing crash-risk and keeping explanations simple outweighs handling highly complex interval packing.
 
 ---
 
