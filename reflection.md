@@ -4,8 +4,7 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+I started with a small set of classes. Owner holds name, time budget, preferences. Pet holds name/species/needs. Task holds title, duration, priority. Scheduler takes these and builds a daily plan.
 
 **b. Design changes**
 
