@@ -4,12 +4,11 @@
 
 **a. Initial design**
 
-I started with a small set of classes. Owner holds name, time budget, preferences. Pet holds name/species/needs. Task holds title, duration, priority. Scheduler takes these and builds a daily plan.
+I started with a small set of classes. Owner holds name, availabli_minutes_per_day, preferences, max_tasks. Pet holds name/species/needs/age. Task holds title, duration, priority. Scheduler takes these and builds a daily plan.
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+I rewrote the skeleton to concrete backend logic, added new classes/fields from your design critique, and made the scheduler use priority + deadline to build a plan fitting the owner's daily budget. Owner and Pet got basic behaviors (preferences, energy), and Task now includes unique task_id and scheduling timestamps. DailyPlan now tracks tasks and total time, and the Scheduler uses ConstraintEngine to keep logic modular with explicit constraint handling. Finally, PawPalApp stub methods connect to scheduler behavior.
 
 ---
 
